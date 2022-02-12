@@ -1,23 +1,27 @@
 import { useState } from 'react';
 import { useUser } from '../../context/UserContext';
 import { useEntries } from '../../context/EntryContext';
+import { createEntry } from '../../services/entries';
 
 export default function GuestForm() {
   const [name, setName] = useState('');
   const [comment, setComment] = useState('');
   const { user, setUser } = useUser();
-  const { entries, setEntries } = useEntries();
+  const { setEntries } = useEntries();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const date = new Date().toDateString();
+    const entry = { name, comment, date };
 
-    const id = new Date().toString();
-
-    const newEntry = { id, name, comment };
-
-    setEntries([...entries, newEntry]);
-    setUser(name);
-    setComment('');
+    try {
+      const newEntry = await createEntry(entry);
+      setUser(name);
+      setComment('');
+      setEntries((prevState) => [newEntry[0], ...prevState]);
+    } catch {
+      alert('something went wrong');
+    }
   };
 
   const handleChangeUser = () => {
